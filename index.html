@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width">
-    <title>VFGI mobile (3)</title>
+    <title>Meine Webseite</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@600&display=swap" rel="stylesheet">
     <style>
         body {
@@ -69,14 +69,6 @@
         <label for="rbl-number">RBL Nummer: </label>
         <input type="text" id="rbl-number" value="407">
         <input type="button" value="Aktualisieren" onclick="updateRBL()">
-        <select id="line-select">
-            <option value="">Wähle Linie</option>
-            <!-- Dynamisch gefüllte Linienoptionen -->
-        </select>
-        <select id="stop-select">
-            <option value="">Wähle Haltepunkt</option>
-            <!-- Dynamisch gefüllte Haltepunkteoptionen -->
-        </select>
     </div>
     <p class="large-text" id="current-time"></p>
     <p class="large-text" id="haltepunkt-name">Haltepunkt Name</p>
@@ -89,6 +81,10 @@
     <script>
         let previousData = null;
         let rblNumber = "407";
+
+        function getURLParameter(name) {
+            return new URLSearchParams(window.location.search).get(name);
+        }
 
         function updateClock() {
             const jetzt = new Date();
@@ -178,37 +174,17 @@
             fetchData();
         }
 
-        function populateSelects() {
-            // Beispielhaftes Befüllen der Dropdowns
-            const lines = ['U1', 'U2', 'U3', 'U4', 'U6'];
-            const stops = [
-                { id: 407, name: 'Bernhardtstalgasse' },
-                { id: 1450, name: 'Hütteldorfer Straße' },
-                // Weitere Haltepunkte hinzufügen...
-            ];
-
-            const lineSelect = document.getElementById('line-select');
-            const stopSelect = document.getElementById('stop-select');
-
-            lines.forEach(line => {
-                const option = document.createElement('option');
-                option.value = line;
-                option.textContent = line;
-                lineSelect.appendChild(option);
-            });
-
-            stops.forEach(stop => {
-                const option = document.createElement('option');
-                option.value = stop.id;
-                option.textContent = stop.name;
-                stopSelect.appendChild(option);
-            });
+        window.onload = function() {
+            const paramRBL = getURLParameter('rbl');
+            if (paramRBL) {
+                rblNumber = paramRBL;
+                document.getElementById('rbl-number').value = paramRBL;
+            }
+            fetchData();
         }
 
         setInterval(updateClock, 1000);  // Update the clock every second
-        fetchData();
         setInterval(fetchData, 15000);  // Update data every 15 seconds
-        populateSelects();
     </script>
 </body>
 </html>
