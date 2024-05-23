@@ -1,5 +1,5 @@
 let previousData = null;
-let rblNumber = "407";
+let rblNumber = "798";
 let allStops = [];
 let lineStops = [];
 let allLines = [];
@@ -24,21 +24,33 @@ function updateClock() {
     document.getElementById('current-time').textContent = `${hours}:${minutes}:${seconds} | ${day}.${month}.`;
 }
 
-function fetchData() {
-    fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.wienerlinien.at/ogd_realtime/monitor?activateTrafficInfo=stoerunglang&rbl=${rblNumber}`)}`)
-        .then(response => response.json())
-        .then(data => {
-            try {
-                let parsedData = JSON.parse(data.contents);
-                console.log(parsedData);
-                updatePage(parsedData);
-            } catch (e) {
-                console.error('Error parsing data:', e);
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-        });
+function startTimer(button) {
+    const countdownCell = button.parentNode.previousElementSibling;
+    const countdown = parseInt(countdownCell.textContent);
+
+    if (countdown > 0) {
+        const timerMinutes = Math.max(countdown - 3, 0);
+        const timerDuration = timerMinutes * 60 * 1000;
+
+        setTimeout(() => {
+            alert(`In 2 Minuten fährt deine Bim ab!`);
+        }, timerDuration);
+
+        button.disabled = true;
+        button.textContent = 'Timer gestartet';
+    }
+}
+
+async function fetchData() {
+    try {
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.wienerlinien.at/ogd_realtime/monitor?activateTrafficInfo=stoerunglang&rbl=${rblNumber}`)}`);
+        const data = await response.json();
+        let parsedData = JSON.parse(data.contents);
+        console.log(parsedData);
+        updatePage(parsedData);
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
 }
 
 function updatePage(data) {
@@ -69,11 +81,17 @@ function updatePage(data) {
 
         let table = document.getElementById('departure-table');
         table.innerHTML = '';
-        departures.forEach(dep => {
+        departures.forEach((dep, index) => {
             let row = table.insertRow();
             row.insertCell().textContent = dep.line;
             row.insertCell().textContent = `${dep.towards} ${dep.barrierFree ? '♿' : ''} ${dep.realtimeSupported ? '🕒' : ''}`;
             row.insertCell().textContent = dep.countdown;
+        
+            if (index === 0) {
+                row.insertCell().innerHTML = '<button class="timer-button" onclick="startTimer(this)">Timer</button>';
+            } else {
+                row.insertCell().textContent = '';
+            }
         });
 
         document.getElementById('stoerung-text').textContent = stoerungText;
@@ -119,26 +137,21 @@ function filterStopsByLine() {
     }
 }
 
-window.onload = function() {
+async function initApp() {
     const paramRBL = getURLParameter('rbl');
     if (paramRBL) {
         rblNumber = paramRBL;
         document.getElementById('rbl-number').value = paramRBL;
     }
 
-    fetchCSVData('https://www.wienerlinien.at/ogd_realtime/doku/ogd/wienerlinien-ogd-haltepunkte.csv', stops => {
-        allStops = stops;
-        populateDropdown(stops, 'stop-select', 'StopText', 'StopID');
-    }, stopHeaders);
+    try {
+        allStops = await fetchCSVData('https://www.wienerlinien.at/ogd_realtime/doku/ogd/wienerlinien-ogd-haltepunkte.csv', stopHeaders);
+        populateDropdown(allStops, 'stop-select', 'StopText', 'StopID');
 
-    fetchCSVData('https://www.wienerlinien.at/ogd_realtime/doku/ogd/wienerlinien-ogd-linien.csv', lines => {
-        allLines = lines.filter(line => line.Realtime === '1'); // Only lines with Realtime = 1
+        allLines = (await fetchCSVData('https://www.wienerlinien.at/ogd_realtime/doku/ogd/wienerlinien-ogd-linien.csv', lineHeaders)).filter(line => line.Realtime === '1');
         populateDropdown(allLines, 'line-select', 'LineText', 'LineID');
-    }, lineHeaders);
 
-    fetchCSVData('https://www.wienerlinien.at/ogd_realtime/doku/ogd/wienerlinien-ogd-fahrwegverlaeufe.csv', fahrwegverlaeufe => {
-        lineStops = fahrwegverlaeufe;
-        // Create a map of LineID to array of StopID and Direction
+        lineStops = await fetchCSVData('https://www.wienerlinien.at/ogd_realtime/doku/ogd/wienerlinien-ogd-fahrwegverlaeufe.csv', fahrwegverlaeufeHeaders);
         lineStops.forEach(item => {
             if (!lineToStopsMap[item.LineID]) {
                 lineToStopsMap[item.LineID] = [];
@@ -151,16 +164,19 @@ window.onload = function() {
             directionToStopsMap[item.Direction].push(item.StopID);
         });
 
-        // Populate direction dropdown with unique directions
         const uniqueDirections = [...new Set(lineStops.map(item => item.Direction))];
         populateDropdown(uniqueDirections.map(dir => ({ Direction: dir, Text: `Direction ${dir}` })), 'direction-select', 'Text', 'Direction');
 
-        console.log('Line to Stops Map:', lineToStopsMap); // Log the line to stops mapping
-        console.log('Direction to Stops Map:', directionToStopsMap); // Log the direction to stops mapping
-    }, fahrwegverlaeufeHeaders);
+        console.log('Line to Stops Map:', lineToStopsMap);
+        console.log('Direction to Stops Map:', directionToStopsMap);
 
-    fetchData();
+        fetchData();
+    } catch (error) {
+        console.error('Error initializing app:', error);
+    }
 }
+
+window.onload = initApp;
 
 setInterval(updateClock, 1000);
 setInterval(fetchData, 15000);

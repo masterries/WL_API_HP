@@ -1,25 +1,22 @@
-function fetchCSVData(url, callback, headers) {
+async function fetchCSVData(url, headers) {
     console.log(`Fetching CSV data from URL: ${url}`);
-    fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`)
-        .then(response => {
-            console.log(`Response received from ${url}`);
-            return response.json();
-        })
+    try {
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        console.log(`Response received from ${url}`);
+        const data = await response.json();
         console.log(`Response JSON:`, data);
-        .then(data => {
-            try {
-                // Decode Base64 encoded CSV data
-                const base64Data = data.contents.split(',')[1];
-                const csvData = atob(base64Data);
-                console.log(`CSV Data decoded: ${csvData.slice(0, 100)}...`); // Log the first 100 characters of the CSV data
-                const parsedData = parseCSV(csvData, headers);
-                console.log(`Parsed data:`, parsedData);
-                callback(parsedData);
-            } catch (e) {
-                console.error('Error parsing CSV data:', e);
-            }
-        })
-        .catch(error => console.error('Error fetching CSV data:', error));
+
+        const base64Data = data.contents.split(',')[1];
+        const csvData = atob(base64Data);
+        console.log(`CSV Data decoded: ${csvData.slice(0, 100)}...`);
+
+        const parsedData = parseCSV(csvData, headers);
+        console.log(`Parsed data:`, parsedData);
+        return parsedData;
+    } catch (error) {
+        console.error('Error fetching CSV data:', error);
+        throw error;
+    }
 }
 
 function parseCSV(data, headers) {
@@ -44,12 +41,12 @@ function parseCSV(data, headers) {
 
 function populateDropdown(items, dropdownId, textKey, valueKey) {
     const select = document.getElementById(dropdownId);
-    select.innerHTML = ''; // Clear existing options
+    select.innerHTML = '';
     items.forEach(item => {
         const option = document.createElement('option');
         option.value = item[valueKey];
         option.text = item[textKey];
         select.appendChild(option);
     });
-    console.log(`Dropdown ${dropdownId} populated with items:`, items); // Log the populated items
+    console.log(`Dropdown ${dropdownId} populated with items:`, items);
 }

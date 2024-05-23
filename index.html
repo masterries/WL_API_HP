@@ -3,41 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meine Webseite</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@600&display=swap" rel="stylesheet">
+    <title>Wiener Linien - Fahrplanauskunft</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="input-container">
-        <label for="rbl-number">RBL Nummer: </label>
-        <input type="text" id="rbl-number" value="407">
-        <input type="button" value="Aktualisieren" onclick="updateRBL()">
-        <br>
-        <label for="line-select">Linie: </label>
-        <select id="line-select" onchange="filterStopsByLine()">
-            <option value="all">Alle Linien</option>
-            <!-- Options will be dynamically inserted here -->
-        </select>
-        <br>
-        <label for="direction-select">Richtung: </label>
-        <select id="direction-select" onchange="filterStopsByLine()">
-            <option value="all">Alle Richtungen</option>
-            <!-- Options will be dynamically inserted here -->
-        </select>
-        <br>
-        <label for="stop-select">Haltestelle: </label>
-        <select id="stop-select" onchange="updateStopID()">
-            <!-- Options will be dynamically inserted here -->
-        </select>
-    </div>
-    <p class="large-text" id="current-time"></p>
-    <p class="large-text" id="haltepunkt-name">Haltepunkt Name</p>
-    <table id="departure-table">
-        <!-- Abfahrtsdaten werden hier eingefügt -->
-    </table>
-    <p id="stoerung-text" class="standard-text">
-        <!-- Störungstext wird hier eingefügt -->
-    </p>
+    <header>
+        <h1>Wiener Linien - Fahrplanauskunft</h1>
+    </header>
+    <main>
+        <div class="input-container">
+            <label for="rbl-number">RBL Nummer:</label>
+            <input type="text" id="rbl-number" value="798">
+            <button onclick="updateRBL()">Aktualisieren</button>
+        </div>
+        <div class="filter-container">
+            <div class="filter-group">
+                <label for="line-select">Linie:</label>
+                <select id="line-select" onchange="filterStopsByLine()">
+                    <option value="all">Alle Linien</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="direction-select">Richtung:</label>
+                <select id="direction-select" onchange="filterStopsByLine()">
+                    <option value="all">Alle Richtungen</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="stop-select">Haltestelle:</label>
+                <select id="stop-select" onchange="updateStopID()"></select>
+            </div>
+        </div>
+        <div class="info-container">
+            <p id="haltepunkt-name" class="large-text">Haltepunkt Name</p>
+        </div>
+        <div class="departure-container">
+            <table id="departure-table"></table>
+        </div>
+        <div class="stoerung-container">
+            <p id="stoerung-text" class="standard-text"></p>
+        </div>
+    </main>
+    <footer>
+        <p id="current-time" class="standard-text"></p>
+    </footer>
+    
     <script src="fetchCSV.js"></script>
     <script src="scripts.js"></script>
 </body>
