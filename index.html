@@ -12,6 +12,17 @@
         <label for="rbl-number">RBL Nummer: </label>
         <input type="text" id="rbl-number" value="407">
         <input type="button" value="Aktualisieren" onclick="updateRBL()">
+        <br>
+        <label for="line-select">Linie: </label>
+        <select id="line-select" onchange="filterStopsByLine()">
+            <option value="all">Alle Linien</option>
+            <!-- Options will be dynamically inserted here -->
+        </select>
+        <br>
+        <label for="stop-select">Haltestelle: </label>
+        <select id="stop-select" onchange="updateStopID()">
+            <!-- Options will be dynamically inserted here -->
+        </select>
     </div>
     <p class="large-text" id="current-time"></p>
     <p class="large-text" id="haltepunkt-name">Haltepunkt Name</p>
@@ -21,6 +32,7 @@
     <p id="stoerung-text" class="standard-text">
         <!-- Störungstext wird hier eingefügt -->
     </p>
+    <script src="fetchCSV.js"></script>
     <script src="scripts.js"></script>
 </body>
 </html>
