@@ -1,12 +1,18 @@
 function fetchCSVData(url, callback, headers) {
+    console.log(`Fetching CSV data from URL: ${url}`);
     fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`)
-        .then(response => response.json())
+        .then(response => {
+            console.log(`Response received from ${url}`);
+            return response.json();
+        })
         .then(data => {
             try {
                 // Decode Base64 encoded CSV data
                 const base64Data = data.contents.split(',')[1];
                 const csvData = atob(base64Data);
+                console.log(`CSV Data decoded: ${csvData.slice(0, 100)}...`); // Log the first 100 characters of the CSV data
                 const parsedData = parseCSV(csvData, headers);
+                console.log(`Parsed data:`, parsedData);
                 callback(parsedData);
             } catch (e) {
                 console.error('Error parsing CSV data:', e);
@@ -16,6 +22,7 @@ function fetchCSVData(url, callback, headers) {
 }
 
 function parseCSV(data, headers) {
+    console.log(`Parsing CSV data with headers: ${headers}`);
     const lines = data.split('\n');
     const items = [];
 
@@ -30,6 +37,7 @@ function parseCSV(data, headers) {
         }
     }
 
+    console.log(`Parsed items:`, items);
     return items;
 }
 

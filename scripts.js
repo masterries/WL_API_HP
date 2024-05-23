@@ -128,12 +128,15 @@ window.onload = function() {
 
     fetchCSVData('https://www.wienerlinien.at/ogd_realtime/doku/ogd/wienerlinien-ogd-fahrwegverlaeufe.csv', fahrwegverlaeufe => {
         lineStops = fahrwegverlaeufe;
+        console.log('Parsed fahrwegverlaeufe:', fahrwegverlaeufe); // Log parsed fahrwegverlaeufe data
+        // Create a map of LineID to array of StopID
         lineStops.forEach(item => {
             if (!lineToStopsMap[item.LineID]) {
                 lineToStopsMap[item.LineID] = [];
             }
             lineToStopsMap[item.LineID].push(item.StopID);
         });
+        console.log('Line to Stops Map:', lineToStopsMap); // Log the line to stops mapping
     }, fahrwegverlaeufeHeaders);
 
     fetchData();
