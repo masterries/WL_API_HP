@@ -19,6 +19,12 @@
             <!-- Options will be dynamically inserted here -->
         </select>
         <br>
+        <label for="direction-select">Richtung: </label>
+        <select id="direction-select" onchange="filterStopsByLine()">
+            <option value="all">Alle Richtungen</option>
+            <!-- Options will be dynamically inserted here -->
+        </select>
+        <br>
         <label for="stop-select">Haltestelle: </label>
         <select id="stop-select" onchange="updateStopID()">
             <!-- Options will be dynamically inserted here -->

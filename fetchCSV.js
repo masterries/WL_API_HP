@@ -5,6 +5,7 @@ function fetchCSVData(url, callback, headers) {
             console.log(`Response received from ${url}`);
             return response.json();
         })
+        console.log(`Response JSON:`, data);
         .then(data => {
             try {
                 // Decode Base64 encoded CSV data

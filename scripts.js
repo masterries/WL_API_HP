@@ -4,6 +4,7 @@ let allStops = [];
 let lineStops = [];
 let allLines = [];
 let lineToStopsMap = {};
+let directionToStopsMap = {};
 
 const stopHeaders = ['StopID', 'DIVA', 'StopText', 'Municipality', 'MunicipalityID', 'Longitude', 'Latitude'];
 const lineHeaders = ['LineID', 'LineText', 'SortingHelp', 'Realtime', 'MeansOfTransport'];
@@ -98,12 +99,21 @@ function updateStopID() {
 
 function filterStopsByLine() {
     const lineSelect = document.getElementById('line-select');
+    const directionSelect = document.getElementById('direction-select');
     const selectedLineID = lineSelect.value;
+    const selectedDirection = directionSelect.value;
 
-    if (selectedLineID === 'all') {
+    if (selectedLineID === 'all' && selectedDirection === 'all') {
         populateDropdown(allStops, 'stop-select', 'StopText', 'StopID');
     } else {
-        const stopIDs = lineToStopsMap[selectedLineID] || [];
+        let stopIDs = [];
+        if (selectedLineID !== 'all') {
+            stopIDs = lineToStopsMap[selectedLineID] || [];
+        }
+        if (selectedDirection !== 'all') {
+            const directionStopIDs = directionToStopsMap[selectedDirection] || [];
+            stopIDs = stopIDs.filter(id => directionStopIDs.includes(id));
+        }
         const filteredStops = allStops.filter(stop => stopIDs.includes(stop.StopID));
         populateDropdown(filteredStops, 'stop-select', 'StopText', 'StopID');
     }
@@ -128,15 +138,25 @@ window.onload = function() {
 
     fetchCSVData('https://www.wienerlinien.at/ogd_realtime/doku/ogd/wienerlinien-ogd-fahrwegverlaeufe.csv', fahrwegverlaeufe => {
         lineStops = fahrwegverlaeufe;
-        console.log('Parsed fahrwegverlaeufe:', fahrwegverlaeufe); // Log parsed fahrwegverlaeufe data
-        // Create a map of LineID to array of StopID
+        // Create a map of LineID to array of StopID and Direction
         lineStops.forEach(item => {
             if (!lineToStopsMap[item.LineID]) {
                 lineToStopsMap[item.LineID] = [];
             }
             lineToStopsMap[item.LineID].push(item.StopID);
+
+            if (!directionToStopsMap[item.Direction]) {
+                directionToStopsMap[item.Direction] = [];
+            }
+            directionToStopsMap[item.Direction].push(item.StopID);
         });
+
+        // Populate direction dropdown with unique directions
+        const uniqueDirections = [...new Set(lineStops.map(item => item.Direction))];
+        populateDropdown(uniqueDirections.map(dir => ({ Direction: dir, Text: `Direction ${dir}` })), 'direction-select', 'Text', 'Direction');
+
         console.log('Line to Stops Map:', lineToStopsMap); // Log the line to stops mapping
+        console.log('Direction to Stops Map:', directionToStopsMap); // Log the direction to stops mapping
     }, fahrwegverlaeufeHeaders);
 
     fetchData();
