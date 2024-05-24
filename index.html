@@ -8,20 +8,22 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="input-container">
-        <label for="rbl-number">RBL Nummer: </label>
-        <input type="text" id="rbl-number" value="407">
-        <input type="button" value="Aktualisieren" onclick="updateRBL()">
-    </div>
     <p class="large-text" id="current-time"></p>
     <p class="large-text" id="haltepunkt-name">Haltepunkt Name</p>
     <table id="departure-table">
         <!-- Abfahrtsdaten werden hier eingefügt -->
     </table>
+    <div class="input-container">
+        <!-- Verschoben unter die Tabelle -->
+        <label for="rbl-number">RBL Nummer: </label>
+        <input type="text" id="rbl-number" value="407">
+        <input type="button" value="Aktualisieren" onclick="updateRBL()">
+    </div>
     <p id="stoerung-text" class="standard-text">
         <!-- Störungstext wird hier eingefügt -->
     </p>
     <p id="error-message" class="error"></p> <!-- Fehlermeldungsabschnitt -->
     <script src="scripts.js"></script>
 </body>
+
 </html>

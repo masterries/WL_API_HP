@@ -56,8 +56,18 @@ tr:not(:last-child) {
 }
 /* Media Query for Mobile View */
 @media (max-width: 768px) {
-    .large-text, .input-container, #haltepunkt-name, #stoerung-text {
+    .large-text, #haltepunkt-name {
         display: none;
+    }
+    .input-container {
+        display: block; /* Stellen Sie sicher, dass der Input-Container angezeigt wird */
+        margin-top: 20px; /* Fügen Sie einen Abstand oben hinzu, falls benötigt */
+    }
+    #stoerung-text {
+        display: block; /* Stellen Sie sicher, dass Störungstext angezeigt wird */
+        font-size: 20px; /* Passen Sie die Schriftgröße an, falls benötigt */
+        color: red; /* Optional: Farbänderung zur Hervorhebung */
+        padding: 10px; /* Zusätzlicher Abstand für bessere Lesbarkeit */
     }
     td:first-child {
         font-size: 50px;
@@ -69,3 +79,5 @@ tr:not(:last-child) {
         font-size: 50px;
     }
 }
+
+
