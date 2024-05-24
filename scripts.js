@@ -47,6 +47,7 @@ function updatePage(data) {
         document.getElementById('error-message').style.display = 'block';
         console.error('No data object found:', data);
         document.getElementById('departure-table').innerHTML = '';
+        document.getElementById('stoerung-text').innerHTML = '';
         return;
     }
     
@@ -56,6 +57,7 @@ function updatePage(data) {
         document.getElementById('error-message').style.display = 'block';
         console.error('No monitors data available:', data);
         document.getElementById('departure-table').innerHTML = '';
+        document.getElementById('stoerung-text').innerHTML = '';
         return;
     } else {
         document.getElementById('error-message').style.display = 'none'; // Verbergen Sie die Fehlermeldung, wenn Daten vorhanden sind
@@ -78,6 +80,7 @@ function updatePage(data) {
         document.getElementById('error-message').innerText = 'Keine Abfahrtsinformationen verfügbar.';
         document.getElementById('error-message').style.display = 'block';
         document.getElementById('departure-table').innerHTML = '';
+        document.getElementById('stoerung-text').innerHTML = '';
     }
 
     let stoerungText = data.data.trafficInfos?.[0]?.description.replace(/\n/g, ' ') || 'Keine Störungen';
