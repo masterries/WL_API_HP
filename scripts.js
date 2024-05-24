@@ -41,11 +41,27 @@ function fetchData() {
 }
 
 function updatePage(data) {
-    if (!data || !data.data || !data.data.monitors || !data.data.monitors[0]) {
-        console.error('Unexpected data structure', data);
+    // Überprüfen Sie, ob das grundlegende Datenobjekt fehlt oder leer ist
+    if (!data || !data.data) {
+        document.getElementById('error-message').innerText = 'Keine Daten verfügbar.';
+        document.getElementById('error-message').style.display = 'block';
+        console.error('No data object found:', data);
+        document.getElementById('departure-table').innerHTML = '';
         return;
     }
+    
+    // Überprüfen Sie, ob Monitore vorhanden sind oder die Liste leer ist
+    if (!data.data.monitors || data.data.monitors.length === 0) {
+        document.getElementById('error-message').innerText = 'Keine Anzeigedaten verfügbar.';
+        document.getElementById('error-message').style.display = 'block';
+        console.error('No monitors data available:', data);
+        document.getElementById('departure-table').innerHTML = '';
+        return;
+    } else {
+        document.getElementById('error-message').style.display = 'none'; // Verbergen Sie die Fehlermeldung, wenn Daten vorhanden sind
+    }
 
+    // Da Daten vorhanden sind, extrahieren Sie die relevanten Daten
     let monitor = data.data.monitors[0];
     let haltepunktName = monitor.locationStop?.properties?.title || 'Unbekannter Haltepunkt';
     let departures = [];
@@ -58,35 +74,33 @@ function updatePage(data) {
             barrierFree: line.barrierFree,
             realtimeSupported: line.realtimeSupported
         })) || []);
+    } else {
+        document.getElementById('error-message').innerText = 'Keine Abfahrtsinformationen verfügbar.';
+        document.getElementById('error-message').style.display = 'block';
+        document.getElementById('departure-table').innerHTML = '';
     }
 
     let stoerungText = data.data.trafficInfos?.[0]?.description.replace(/\n/g, ' ') || 'Keine Störungen';
 
-    // Check if data has changed
-    if (JSON.stringify(data) !== JSON.stringify(previousData)) {
-        console.log('Data has changed, updating the page');
-        document.getElementById('haltepunkt-name').innerText = haltepunktName;
+    // Aktualisieren Sie die Seite mit den neuen Daten
+    document.getElementById('haltepunkt-name').innerText = haltepunktName;
+    let table = document.getElementById('departure-table');
+    table.innerHTML = '';
+    departures.forEach(dep => {
+        let row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${dep.line}</td>
+            <td>${dep.towards} ${dep.barrierFree ? '♿' : ''} ${dep.realtimeSupported ? '🕒' : ''}</td>
+            <td>${dep.countdown}</td>
+        `;
+        table.appendChild(row);
+    });
+    document.getElementById('stoerung-text').innerText = stoerungText;
 
-        let table = document.getElementById('departure-table');
-        table.innerHTML = '';
-        departures.forEach(dep => {
-            let row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${dep.line}</td>
-                <td>${dep.towards} ${dep.barrierFree ? '♿' : ''} ${dep.realtimeSupported ? '🕒' : ''}</td>
-                <td>${dep.countdown}</td>
-            `;
-            table.appendChild(row);
-        });
-
-        document.getElementById('stoerung-text').innerText = stoerungText;
-
-        // Update previousData to the current data
-        previousData = data;
-    } else {
-        console.log('Data has not changed, not updating the page');
-    }
+    // Aktualisieren Sie previousData für künftige Vergleiche
+    previousData = data;
 }
+
 
 function updateRBL() {
     rblNumber = document.getElementById('rbl-number').value;
