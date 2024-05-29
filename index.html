@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meine Webseite</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,16 +15,19 @@
         <!-- Abfahrtsdaten werden hier eingefügt -->
     </table>
     <div class="input-container">
-        <!-- Verschoben unter die Tabelle -->
-        <label for="rbl-number">RBL Nummer: </label>
-        <input type="text" id="rbl-number" value="407">
-        <input type="button" value="Aktualisieren" onclick="updateRBL()">
+        <label for="station-search">Haltestelle suchen: </label>
+        <input type="text" id="station-search" placeholder="Haltestelle eingeben" data-minchars="1" data-maxitems="10" data-autofirst="true">
     </div>
+    <div id="search-results"></div>
     <p id="stoerung-text" class="standard-text">
         <!-- Störungstext wird hier eingefügt -->
     </p>
-    <p id="error-message" class="error"></p> <!-- Fehlermeldungsabschnitt -->
+    <footer>
+        <p>Ausgewählte Station: <span id="selected-station"></span></p>
+    </footer>
+    <p id="error-message" class="error"></p>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
     <script src="scripts.js"></script>
+    <script src="search.js"></script>
 </body>
-
 </html>

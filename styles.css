@@ -1,16 +1,16 @@
 body {
     font-family: 'Roboto Condensed', sans-serif;
-    font-weight: 600;
+    font-weight: 300;
     margin: 0;
     padding: 0;
 }
 .large-text {
-    font-size: 50px;
+    font-size: 30px;
     margin: 0;
     padding: 0;
 }
 .standard-text {
-    font-size: 25px;
+    font-size: 15px;
     margin: 0;
     padding: 0;
 }
@@ -27,57 +27,58 @@ input[type="button"] {
     padding: 5px;
 }
 table {
-    width: 100%;
+    width: 86%;
     border-collapse: collapse;
     background-color: black;
     color: yellow;
-    border: 20px solid red;
+    border: 10px solid red;
 }
 th, td {
-    padding: 0px;
+    padding: 5px;
 }
 td:first-child {
-    width: 15%;
+    width: 20%; /* Angepasst, um mehr Platz zu schaffen */
     text-align: center;
-    font-size: 100px;
+    font-size: 30px; /* Angepasst für bessere Sichtbarkeit */
 }
 td:nth-child(2) {
-    width: 70%;
+    width: 45%; /* Angepasst, um mehr Platz zu schaffen */
     text-align: left;
-    font-size: 50px;
+    font-size: 20px; /* Angepasst für bessere Lesbarkeit */
 }
 td:nth-child(3) {
-    width: 15%;
+    width: 15%; /* Unverändert, sollte passend sein */
     text-align: right;
-    font-size: 100px;
+    font-size: 30px; /* Angepasst für bessere Sichtbarkeit */
 }
 tr:not(:last-child) {
     border-bottom: 1px solid yellow;
 }
-/* Media Query for Mobile View */
 @media (max-width: 768px) {
     .large-text, #haltepunkt-name {
         display: none;
     }
     .input-container {
-        display: block; /* Stellen Sie sicher, dass der Input-Container angezeigt wird */
-        margin-top: 20px; /* Fügen Sie einen Abstand oben hinzu, falls benötigt */
+        display: block;
+        margin-top: 20px;
     }
     #stoerung-text {
-        display: block; /* Stellen Sie sicher, dass Störungstext angezeigt wird */
-        font-size: 20px; /* Passen Sie die Schriftgröße an, falls benötigt */
-        color: red; /* Optional: Farbänderung zur Hervorhebung */
-        padding: 10px; /* Zusätzlicher Abstand für bessere Lesbarkeit */
+        display: block;
+        font-size: 20px;
+        color: red;
+        padding: 10px;
     }
     td:first-child {
-        font-size: 50px;
+        font-size: 20px; /* Kleinere Schriftgröße für Mobile */
     }
     td:nth-child(2) {
-        font-size: 25px;
+        font-size: 15px; /* Kleinere Schriftgröße für Mobile */
     }
     td:nth-child(3) {
-        font-size: 50px;
+        font-size: 20px; /* Kleinere Schriftgröße für Mobile */
     }
 }
 
-
+.hidden {
+    display: none;
+}

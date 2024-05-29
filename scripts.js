@@ -1,9 +1,5 @@
 let previousData = null;
-let rblNumber = "407";
-
-function getURLParameter(name) {
-    return new URLSearchParams(window.location.search).get(name);
-}
+let currentStationName = '';
 
 function updateClock() {
     const jetzt = new Date();
@@ -20,39 +16,44 @@ function updateClock() {
     document.getElementById('current-time').innerText = `${stunden2}${stunden}${minute2}${minuten}${sekunde2}${sekunden} | ${tag}.${monat2}${monat}.`;
 }
 
-function fetchData() {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", 'https://api.allorigins.win/get?url=' + encodeURIComponent(`https://www.wienerlinien.at/ogd_realtime/monitor?activateTrafficInfo=stoerunglang&rbl=${rblNumber}`), true);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-            try {
-                let response = JSON.parse(xhr.responseText);
-                let parsedData = JSON.parse(response.contents);
-                console.log(parsedData);  // Debugging-Ausgabe
-                updatePage(parsedData);
-            } catch (e) {
-                console.error('Error parsing data:', e);
-            }
-        } else if (xhr.readyState === 4) {
-            console.error('Error fetching data:', xhr.statusText);
-        }
-    };
-    xhr.send();
-}
-
-function updatePage(data) {
-    // Überprüfen Sie, ob das grundlegende Datenobjekt fehlt oder leer ist
-    if (!data || !data.data) {
-        document.getElementById('error-message').innerText = 'Keine Daten verfügbar.';
-        document.getElementById('error-message').style.display = 'block';
-        console.error('No data object found:', data);
-        document.getElementById('departure-table').innerHTML = '';
-        document.getElementById('stoerung-text').innerHTML = '';
+async function fetchData() {
+    if (!currentStationName) {
+        console.log('No station selected');
         return;
     }
     
-    // Überprüfen Sie, ob Monitore vorhanden sind oder die Liste leer ist
-    if (!data.data.monitors || data.data.monitors.length === 0) {
+    try {
+        let response = await fetch(`https://cors-anywhere.herokuapp.com/https://m.qando.at/ws/monitor?diva=${currentStationName}&_=${Date.now()}`);
+        let data = await response.json();
+        console.log(data);
+
+        if (data.message.messageCode !== 1) {
+            throw new Error('Error fetching data: ' + data.message.value);
+        }
+
+        updatePage(data);
+    } catch (e) {
+        console.error('Error fetching data:', e);
+        document.getElementById('error-message').innerText = 'Fehler beim Abrufen der Daten.';
+        document.getElementById('error-message').style.display = 'block';
+    }
+}
+
+function toggleDepartures(lineName) {
+    let lineRows = document.querySelectorAll(`tr[data-line="${lineName}"]`);
+    lineRows.forEach(row => {
+        if (row.style.display === 'none') {
+            row.style.display = 'table-row';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+
+function updatePage(data) {
+    updateClock(); // Aktualisiert die Uhrzeit bei jedem Datenabruf
+    if (!data || !data.data || !data.data.monitors || data.data.monitors.length === 0) {
         document.getElementById('error-message').innerText = 'Keine Anzeigedaten verfügbar.';
         document.getElementById('error-message').style.display = 'block';
         console.error('No monitors data available:', data);
@@ -60,64 +61,54 @@ function updatePage(data) {
         document.getElementById('stoerung-text').innerHTML = '';
         return;
     } else {
-        document.getElementById('error-message').style.display = 'none'; // Verbergen Sie die Fehlermeldung, wenn Daten vorhanden sind
+        document.getElementById('error-message').style.display = 'none';
     }
 
-    // Da Daten vorhanden sind, extrahieren Sie die relevanten Daten
-    let monitor = data.data.monitors[0];
-    let haltepunktName = monitor.locationStop?.properties?.title || 'Unbekannter Haltepunkt';
-    let departures = [];
-
-    if (monitor.lines && monitor.lines.length > 0) {
-        departures = monitor.lines.flatMap(line => line.departures?.departure.map(dep => ({
-            line: line.name,
-            towards: line.towards,
-            countdown: dep.departureTime.countdown,
-            barrierFree: line.barrierFree,
-            realtimeSupported: line.realtimeSupported
-        })) || []);
-    } else {
-        document.getElementById('error-message').innerText = 'Keine Abfahrtsinformationen verfügbar.';
-        document.getElementById('error-message').style.display = 'block';
-        document.getElementById('departure-table').innerHTML = '';
-        document.getElementById('stoerung-text').innerHTML = '';
-    }
-
-    let stoerungText = data.data.trafficInfos?.[0]?.description.replace(/\n/g, ' ') || 'Keine Störungen';
-
-    // Aktualisieren Sie die Seite mit den neuen Daten
+    let haltepunktName = data.data.monitors[0].locationStop?.properties?.title || 'Unbekannter Haltepunkt';
     document.getElementById('haltepunkt-name').innerText = haltepunktName;
     let table = document.getElementById('departure-table');
     table.innerHTML = '';
-    departures.forEach(dep => {
-        let row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${dep.line}</td>
-            <td>${dep.towards} ${dep.barrierFree ? '♿' : ''} ${dep.realtimeSupported ? '🕒' : ''}</td>
-            <td>${dep.countdown}</td>
-        `;
-        table.appendChild(row);
-    });
-    document.getElementById('stoerung-text').innerText = stoerungText;
 
-    // Aktualisieren Sie previousData für künftige Vergleiche
+    data.data.monitors.forEach(monitor => {
+        let stationName = monitor.locationStop?.properties?.title;
+        let lines = {};
+
+        monitor.lines.forEach(line => {
+            if (!lines[line.name]) {
+                lines[line.name] = [];
+            }
+            line.departures?.departure.forEach(dep => {
+                lines[line.name].push({
+                    towards: line.towards,
+                    countdown: dep.departureTime.countdown,
+                    barrierFree: line.barrierFree,
+                    realtimeSupported: line.realtimeSupported
+                });
+            });
+        });
+
+        // Erstellen der Kopfzeile für jede Station
+        let stationHeader = document.createElement('tr');
+        stationHeader.innerHTML = `<th colspan="3" onclick="toggleDepartures('${stationName}')">${stationName}</th>`;
+        table.appendChild(stationHeader);
+
+        for (let lineName in lines) {
+            let departures = lines[lineName].slice(0, 2); // Maximal zwei Abfahrtszeiten pro Linie
+            departures.forEach(dep => {
+                let row = document.createElement('tr');
+                row.setAttribute('data-station', stationName);
+                row.innerHTML = `
+                    <td>${lineName}</td>
+                    <td>${dep.towards} ${dep.barrierFree ? '♿' : ''} ${dep.realtimeSupported ? '🕒' : ''}</td>
+                    <td>${dep.countdown}</td>
+                `;
+                table.appendChild(row);
+            });
+        }
+    });
+
     previousData = data;
 }
 
 
-function updateRBL() {
-    rblNumber = document.getElementById('rbl-number').value;
-    fetchData();
-}
-
-window.onload = function() {
-    const paramRBL = getURLParameter('rbl');
-    if (paramRBL) {
-        rblNumber = paramRBL;
-        document.getElementById('rbl-number').value = paramRBL;
-    }
-    fetchData();
-}
-
-setInterval(updateClock, 1000);  // Update the clock every second
-setInterval(fetchData, 15000);  // Update data every 15 seconds
+setInterval(fetchData, 15000);
