@@ -15,7 +15,11 @@ app.get('/', (req, res) => {
 app.get('/proxy', async (req, res) => {
     const url = API_TARGET + req.query.url;
     try {
-        const apiResponse = await fetch(url);
+        const apiResponse = await fetch(url, {
+            headers: {
+                'Access-Control-Allow-Origin': '*'
+            }
+        });
         const data = await apiResponse.json();
         res.json(data);
     } catch (error) {
@@ -23,6 +27,7 @@ app.get('/proxy', async (req, res) => {
         res.status(500).json({ error: 'Error fetching data' });
     }
 });
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
