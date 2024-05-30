@@ -1,0 +1,19 @@
+FROM node:14
+
+# Arbeitsverzeichnis im Container festlegen
+WORKDIR /usr/src/app
+
+# Kopieren der package.json und package-lock.json (falls vorhanden)
+COPY package*.json ./
+
+# Installieren der Node.js Abhängigkeiten
+RUN npm install
+
+# Kopieren der Serverdateien in das Arbeitsverzeichnis
+COPY . .
+
+# Port freigeben
+EXPOSE 3000
+
+# Starten des Servers
+CMD [ "npm", "start" ]
