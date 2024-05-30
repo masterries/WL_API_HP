@@ -12,10 +12,6 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-app.listen(3000, () => {
-    console.log('App listening on port 3000!');
-});
-
 app.get('/proxy', async (req, res) => {
     const url = API_TARGET + req.query.url;
     try {
@@ -23,6 +19,7 @@ app.get('/proxy', async (req, res) => {
         const data = await apiResponse.json();
         res.json(data);
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Error fetching data' });
     }
 });
