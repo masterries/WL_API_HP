@@ -8,6 +8,14 @@ const API_TARGET = 'https://m.qando.at';
 
 app.use(cors());
 
+app.get('/', (req, res) => {
+    res.send('Hello World!');
+});
+
+app.listen(3000, () => {
+    console.log('App listening on port 3000!');
+});
+
 app.get('/proxy', async (req, res) => {
     const url = API_TARGET + req.query.url;
     try {

@@ -48,7 +48,7 @@ async function searchStation() {
 
     searchTimeout = setTimeout(async () => {
         try {
-            let response = await fetch(`http://46.38.243.223:3000/proxy?url=/ws/location?search=${encodeURIComponent(searchTerm)}&type=stop`);
+            let response = await fetch(`https://46.38.243.223:3000/proxy?url=/ws/location?search=${encodeURIComponent(searchTerm)}&type=stop`);
             let data = await response.json();
             console.log(data);
 
