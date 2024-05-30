@@ -8,13 +8,30 @@ let awesomplete = new Awesomplete(document.getElementById('station-search'), {
 });
 
 function displayResults(results) {
-    let list = results.map(result => ({
-        label: `${result.location.properties.title} (${result.location.properties.name}/${result.attributes.stopType})`,
-        value: result.location.properties.name
-    }));
+    console.log(results);
+    let list = results.map(result => {
+        // Sicherstellen, dass alle benötigten Eigenschaften vorhanden sind
+        const title = result.location?.properties?.title;
+        const name = result.location?.properties?.name;
+        const stopType = result.attributes?.stopType;
+
+        // Wenn irgendein erforderlicher Wert fehlt, überspringen Sie diesen Eintrag
+        if (!title || !name || !stopType) {
+            return null;  // Dies wird später gefiltert, um nicht in die finale Liste aufgenommen zu werden
+        }
+
+        // Objekt erstellen, wenn alle Daten vorhanden sind
+        return {
+            label: `${title} (${name}/${stopType})`,
+            value: name
+        };
+    }).filter(item => item !== null);  // Entfernen Sie alle null-Werte, die durch fehlende Daten verursacht wurden
+
     console.log(list);
     awesomplete.list = list;
 }
+
+
 
 
 async function searchStation() {
@@ -31,7 +48,7 @@ async function searchStation() {
 
     searchTimeout = setTimeout(async () => {
         try {
-            let response = await fetch(`https://cors-anywhere.herokuapp.com/https://m.qando.at/ws/location?search=${encodeURIComponent(searchTerm)}&type=stop`);
+            let response = await fetch(`http://46.38.243.223:3000/proxy?url=/ws/location?search=${encodeURIComponent(searchTerm)}&type=stop`);
             let data = await response.json();
             console.log(data);
 
@@ -44,7 +61,7 @@ async function searchStation() {
             console.error('Error searching station:', e);
             awesomplete.list = ['Fehler bei der Suche.'];
         }
-    }, 400);
+    }, 800);
 }
 
 

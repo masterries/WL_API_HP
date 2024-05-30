@@ -12,9 +12,7 @@ function updateClock() {
     const minuten = jetzt.getMinutes();
     const minute2 = (minuten < 10 ? ":0" : ":");
     const sekunden = jetzt.getSeconds();
-    const sekunde2 = (sekunden < 10 ? ".0" : ".");
-    document.getElementById('current-time').innerText = `${stunden2}${stunden}${minute2}${minuten}${sekunde2}${sekunden} | ${tag}.${monat2}${monat}.`;
-}
+    const sekunde2 = (sekunden < 10 ? ".0" : ".");}
 
 async function fetchData() {
     if (!currentStationName) {
@@ -23,7 +21,7 @@ async function fetchData() {
     }
     
     try {
-        let response = await fetch(`https://cors-anywhere.herokuapp.com/https://m.qando.at/ws/monitor?diva=${currentStationName}&_=${Date.now()}`);
+        let response = await fetch(`http://46.38.243.223:3000/proxy?url=/ws/monitor?diva=${currentStationName}&_=${Date.now()}`);
         let data = await response.json();
         console.log(data);
 
