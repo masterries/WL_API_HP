@@ -21,7 +21,7 @@ async function fetchData() {
     }
     
     try {
-        let response = await fetch(`http://46.38.243.223:3000/proxy?url=/ws/monitor?diva=${currentStationName}&_=${Date.now()}`);
+        let response = await fetch(`https://46.38.243.223/proxy?url=/ws/monitor?diva=${currentStationName}&_=${Date.now()}`);
         let data = await response.json();
         console.log(data);
 
