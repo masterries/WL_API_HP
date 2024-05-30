@@ -12,8 +12,10 @@ function updateClock() {
     const minuten = jetzt.getMinutes();
     const minute2 = (minuten < 10 ? ":0" : ":");
     const sekunden = jetzt.getSeconds();
-    const sekunde2 = (sekunden < 10 ? ".0" : ".");}
-
+    const sekunde2 = (sekunden < 10 ? ".0" : ".");
+    document.getElementById('current-time').innerText = `${stunden2}${stunden}${minute2}${minuten}${sekunde2}${sekunden} | ${tag}.${monat2}${monat}.`;
+}
+    
 async function fetchData() {
     if (!currentStationName) {
         console.log('No station selected');
