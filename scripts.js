@@ -39,13 +39,12 @@ async function fetchData() {
     }
 }
 
-function toggleDepartures(lineName) {
-    let lineRows = document.querySelectorAll(`tr[data-line="${lineName}"]`);
-    lineRows.forEach(row => {
+function toggleDepartures(stationName) {
+    console.log('Toggle departures for station:', stationName);
+    let stationRows = document.querySelectorAll(`tr[data-station="${stationName}"]`);
+    stationRows.forEach(row => {
         if (row.style.display === 'none') {
             row.style.display = 'table-row';
-        } else {
-            row.style.display = 'none';
         }
     });
 }
@@ -69,6 +68,7 @@ function updatePage(data) {
     let table = document.getElementById('departure-table');
     table.innerHTML = '';
 
+
     data.data.monitors.forEach(monitor => {
         let stationName = monitor.locationStop?.properties?.title;
         let lines = {};
@@ -78,10 +78,15 @@ function updatePage(data) {
                 lines[line.name] = [];
             }
             line.departures?.departure.forEach(dep => {
+                let towards = line.towards;
+                if (dep.vehicle && dep.vehicle.towards) {
+                    towards = dep.vehicle.towards;
+                }
+                let barrierFree = dep.vehicle?.barrierFree !== undefined ? dep.vehicle.barrierFree : line.barrierFree;
                 lines[line.name].push({
-                    towards: line.towards,
+                    towards: towards,
                     countdown: dep.departureTime.countdown,
-                    barrierFree: line.barrierFree,
+                    barrierFree: barrierFree,
                     realtimeSupported: line.realtimeSupported
                 });
             });
@@ -92,11 +97,26 @@ function updatePage(data) {
         stationHeader.innerHTML = `<th colspan="3" onclick="toggleDepartures('${stationName}')">${stationName}</th>`;
         table.appendChild(stationHeader);
 
+
         for (let lineName in lines) {
-            let departures = lines[lineName].slice(0, 2); // Maximal zwei Abfahrtszeiten pro Linie
-            departures.forEach(dep => {
+            let visibleDepartures = lines[lineName].slice(0, 2);
+            let hiddenDepartures = lines[lineName].slice(2);
+
+            visibleDepartures.forEach(dep => {
                 let row = document.createElement('tr');
                 row.setAttribute('data-station', stationName);
+                row.innerHTML = `
+                    <td>${lineName}</td>
+                    <td>${dep.towards} ${dep.barrierFree ? '♿' : ''} ${dep.realtimeSupported ? '🕒' : ''}</td>
+                    <td>${dep.countdown}</td>
+                `;
+                table.appendChild(row);
+            });
+
+            hiddenDepartures.forEach(dep => {
+                let row = document.createElement('tr');
+                row.setAttribute('data-station', stationName);
+                row.style.display = 'none';
                 row.innerHTML = `
                     <td>${lineName}</td>
                     <td>${dep.towards} ${dep.barrierFree ? '♿' : ''} ${dep.realtimeSupported ? '🕒' : ''}</td>
@@ -109,6 +129,5 @@ function updatePage(data) {
 
     previousData = data;
 }
-
 
 setInterval(fetchData, 15000);
