@@ -130,4 +130,6 @@ function updatePage(data) {
     previousData = data;
 }
 
+
+fetchData()
 setInterval(fetchData, 15000);
