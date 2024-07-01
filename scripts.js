@@ -1,5 +1,5 @@
 let previousData = null;
-let currentStationName = '';
+let currentStationName = '60200425';
 
 function updateClock() {
     const jetzt = new Date();
