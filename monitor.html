@@ -13,10 +13,31 @@
             margin: 0;
             padding: 0;
         }
+        .header-container {
+            text-align: center;
+            padding: 15px 0;
+        }
         .large-text {
             font-size: 30px;
             margin: 0;
             padding: 0;
+            text-align: center;
+        }
+        .back-button {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        .back-button:hover {
+            background-color: #555;
         }
         .standard-text {
             font-size: 15px;
@@ -106,8 +127,11 @@
     </style>
 </head>
 <body>
-    <p class="large-text" id="current-time"></p>
-    <p class="large-text" id="haltepunkt-name">Haltepunkt Name</p>
+    <button onclick="window.location.href='index.html'" class="back-button">← Zurück</button>
+    <div class="header-container">
+        <p class="large-text" id="current-time"></p>
+        <p class="large-text" id="haltepunkt-name">Haltepunkt Name</p>
+    </div>
     <table id="departure-table">
         <!-- Departure data will be inserted here -->
     </table>
