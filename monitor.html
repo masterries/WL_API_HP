@@ -24,25 +24,35 @@
             text-align: center;
         }
         .back-button {
-            position: fixed;
-            top: 0;
-            left: 0;
-            padding: 15px 30px;
-            font-size: 24px;
-            font-family: 'Roboto Condensed', sans-serif;
-            background-color: black;
-            color: yellow;
-            border: none;
-            border-right: 3px solid red;
-            border-bottom: 3px solid red;
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-        .back-button:hover {
-            background-color: #222;
-            padding-left: 40px;
-        }
+    position: fixed;
+    top: 10px; /* Adjust for better visibility */
+    left: 10px; /* Keep some padding for mobile edge alignment */
+    padding: 10px 20px; /* Reduce padding for smaller screens */
+    font-size: 18px; /* Slightly smaller font size for mobile */
+    font-family: 'Roboto Condensed', sans-serif;
+    background-color: black;
+    color: yellow;
+    border: none;
+    border-right: 2px solid red;
+    border-bottom: 2px solid red;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: #222;
+}
+
+@media (max-width: 768px) {
+    .back-button {
+        font-size: 16px; /* Adjust font size further for small devices */
+        padding: 8px 16px; /* Compact padding for better space utilization */
+        top: 5px; /* Reduce top margin for better positioning */
+        left: 5px; /* Align closer to the screen edges */
+    }
+}
+
         .standard-text {
             font-size: 15px;
             margin: 0;
