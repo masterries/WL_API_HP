@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transit Search</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3B82F6;
+            --accent-color: #2563EB;
+            --background-color: #F3F4F6;
+            --card-background: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .search-header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding-top: 40px;
+        }
+
+        .search-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .search-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .search-card {
+            background: var(--card-background);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.125rem;
+            border: 2px solid var(--background-color);
+            border-radius: 12px;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background-color: var(--card-background);
+        }
+
+        .suggestions {
+            margin-top: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 12px;
+        }
+
+        .suggestion-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 4px 0;
+            transition: all 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background-color: var(--background-color);
+            transform: translateX(4px);
+        }
+
+        .station-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .station-details {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .recent-searches {
+            margin-top: 32px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .recent-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .recent-item {
+            background: var(--card-background);
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s ease;
+        }
+
+        .recent-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .recent-name {
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+
+            .search-header {
+                padding-top: 24px;
+            }
+
+            .search-title {
+                font-size: 1.5rem;
+            }
+
+            .recent-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+        }
+
+        .loading {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--background-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: translateY(-50%) rotate(360deg); }
+        }
+
+        .search-input-container {
+            position: relative;
+        }
+
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="search-header">
+            <h1 class="search-title">Transit Monitor</h1>
+            <p class="search-subtitle">Find your station</p>
+        </div>
+
+        <div class="search-card">
+            <div class="search-input-container">
+                <input type="text" 
+                       class="search-input" 
+                       id="searchInput" 
+                       placeholder="Search stations..."
+                       autocomplete="off">
+                <div class="loading" id="searchLoader"></div>
+            </div>
+            <div class="suggestions hidden" id="suggestions"></div>
+        </div>
+
+        <div class="recent-searches">
+            <h2 class="section-title">Recent Stations</h2>
+            <div class="recent-grid" id="recentSearches"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script>
+        let stationsData = [];
+        const MAX_RECENT_SEARCHES = 6;
+        let searchTimeout = null;
+
+        // CSV data
+        const csvData = `StopID;DIVA;StopText;Municipality;MunicipalityID;Longitude;Latitude
+2;;Venediger Au;;;;
+3;;Messe Prater;;;;
+4;60201009;Perspektivstraße;Wien;49000001;16.4010407;48.217915
+5;60200195;Börse;Wien;49000001;16.3660019;48.2155627
+7;60201848;Praterstern, Lassallestraße;Wien;49000001;16.3937688;48.219549
+8;60201349;Hauptbahnhof S U;Wien;49000001;16.3749761;48.1859187
+9;60200619;Julius-Raab-Platz;Wien;49000001;16.3825669;48.2103428
+10;60200245;Stubentor U, Dr.-Karl-Lueger-Platz;Wien;49000001;16.3798899;48.2067269
+11;60201460;Weihburggasse;Wien;49000001;16.3777519;48.2046076
+12;60201193;Schwarzenbergplatz;Wien;49000001;16.3746168;48.2018176
+13;60200975;Oper, Karlsplatz U;Wien;49000001;16.3700893;48.2023325
+14;60200190;Burgring;Wien;49000001;16.3640885;48.2038113
+15;60200246;Ring, Volkstheater U;Wien;49000001;16.3600371;48.2068287
+16;60200994;Parlament;Wien;49000001;16.360109;48.2082715
+17;60200192;Rathausplatz, Burgtheater;Wien;49000001;16.3606929;48.210253
+18;60201184;Schottentor U;Wien;49000001;16.3621481;48.213725
+19;60200195;Börse;Wien;49000001;16.3661277;48.2155567
+20;60201182;Schottenring U;Wien;49000001;16.3712032;48.2165922`;
+
+        // Parse CSV data when page loads
+        Papa.parse(csvData, {
+            delimiter: ";",
+            header: true,
+            complete: function(results) {
+                stationsData = results.data.filter(station => station.StopID && station.StopText);
+                console.log('Parsed stations:', stationsData);
+            }
+        });
+
+        function loadRecentSearches() {
+            const recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+            const recentContainer = document.getElementById('recentSearches');
+            recentContainer.innerHTML = '';
+            
+            recent.forEach(search => {
+                const div = document.createElement('div');
+                div.className = 'recent-item';
+                div.innerHTML = `<div class="recent-name">${search.name}</div>`;
+                div.onclick = () => openMonitor(search.stopId);
+                recentContainer.appendChild(div);
+            });
+        }
+
+        function saveToRecent(stopId, name) {
+            let recent = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+            recent = recent.filter(item => item.stopId !== stopId);
+            recent.unshift({ stopId, name });
+            recent = recent.slice(0, MAX_RECENT_SEARCHES);
+            localStorage.setItem('recentSearches', JSON.stringify(recent));
+            loadRecentSearches();
+        }
+
+        function openMonitor(stopId) {
+            window.location.href = `monitor.html?stopId=${stopId}`;
+        }
+
+        function showLoader() {
+            document.getElementById('searchLoader').classList.add('active');
+        }
+
+        function hideLoader() {
+            document.getElementById('searchLoader').classList.remove('active');
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsList = document.getElementById('suggestions');
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            if (searchTerm.length < 2) {
+                suggestionsList.classList.add('hidden');
+                hideLoader();
+                return;
+            }
+
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+
+            showLoader();
+
+            searchTimeout = setTimeout(() => {
+                const matches = stationsData
+                    .filter(station => 
+                        station.StopText.toLowerCase().includes(searchTerm) ||
+                        station.DIVA?.toLowerCase().includes(searchTerm)
+                    )
+                    .slice(0, 10);
+
+                if (matches.length > 0) {
+                    suggestionsList.innerHTML = '';
+                    matches.forEach(station => {
+                        const div = document.createElement('div');
+                        div.className = 'suggestion-item';
+                        div.innerHTML = `
+                            <div class="station-name">${station.StopText}</div>
+                            ${station.DIVA ? `<div class="station-details">ID: ${station.DIVA}</div>` : ''}
+                        `;
+                        div.onclick = () => {
+                            saveToRecent(station.StopID, station.StopText);
+                            openMonitor(station.StopID);
+                        };
+                        suggestionsList.appendChild(div);
+                    });
+                    suggestionsList.classList.remove('hidden');
+                } else {
+                    suggestionsList.classList.add('hidden');
+                }
+
+                hideLoader();
+            }, 300);
+        });
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !suggestionsList.contains(e.target)) {
+                suggestionsList.classList.add('hidden');
+            }
+        });
+
+        // Load recent searches on page load
+        loadRecentSearches();
+    </script>
+</body>
+</html>

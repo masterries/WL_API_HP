@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Transit Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #3B82F6;
+            --accent-color: #2563EB;
+            --background-color: #F3F4F6;
+            --card-background: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --success-color: #10B981;
+            --warning-color: #F59E0B;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: var(--card-background);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .time {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .date {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .station-name {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-top: 12px;
+            color: var(--text-primary);
+        }
+
+        .departures-container {
+            background: var(--card-background);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .departure-card {
+            padding: 16px;
+            border-bottom: 1px solid var(--background-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .departure-card:last-child {
+            border-bottom: none;
+        }
+
+        .departure-card:hover {
+            background-color: var(--background-color);
+        }
+
+        .departure-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .line-number {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .destination {
+            flex-grow: 1;
+            margin-left: 16px;
+            font-weight: 500;
+        }
+
+        .time-left {
+            font-weight: 600;
+            color: var(--success-color);
+        }
+
+        .more-departures {
+            padding: 0;
+            margin-top: 0;
+            border-top: 1px solid var(--background-color);
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+        }
+
+        .more-departures.visible {
+            padding: 12px;
+            margin-top: 8px;
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        .departure-card {
+            position: relative;
+        }
+
+        .departure-card.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(2px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .departure-card.loading .departure-header {
+            animation: pulse 1.5s infinite;
+        }
+
+        .departure-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+        }
+
+        .indicators {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .indicator {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            background-color: var(--background-color);
+            color: var(--text-secondary);
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 12px 24px;
+            background-color: var(--card-background);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: var(--primary-color);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .last-updated {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+            
+            .time {
+                font-size: 2rem;
+            }
+
+            .station-name {
+                font-size: 1.25rem;
+            }
+
+            .back-button {
+                top: 12px;
+                left: 12px;
+                padding: 8px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button onclick="window.location.href='search.html'" class="back-button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Zurück
+    </button>
+
+    <div class="container">
+        <div class="header">
+            <div class="time" id="current-time">12:00:00</div>
+            <div class="date" id="current-date">20. Januar</div>
+            <div class="station-name" id="haltepunkt-name">Loading...</div>
+        </div>
+
+        <div class="departures-container" id="departure-table">
+            <!-- Departures will be inserted here -->
+        </div>
+
+        <div class="last-updated" id="last-updated"></div>
+    </div>
+
+    <script>
+        let currentData = null;
+        
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        const stopId = getUrlParameter('stopId') || '2949';
+
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('de-DE');
+            const dateString = now.toLocaleDateString('de-DE', { 
+                day: 'numeric', 
+                month: 'long'
+            });
+            
+            document.getElementById('current-time').innerText = timeString;
+            document.getElementById('current-date').innerText = dateString;
+        }
+
+        function toggleLineDetails(linie) {
+            const moreContainer = document.querySelector(`#more-${linie}`);
+            if (moreContainer) {
+                moreContainer.classList.toggle('visible');
+            }
+        }
+
+        async function fetchData() {
+            // Get currently expanded lines before update
+            const expandedLines = Array.from(document.querySelectorAll('.more-departures.visible'))
+                .map(el => el.id.replace('more-', ''));
+            
+            // Add loading state to all cards
+            document.querySelectorAll('.departure-card').forEach(card => {
+                card.classList.add('loading');
+            });
+
+            try {
+                let response = await fetch(`https://wlproxy.vercel.app/api/monitor-station?stopId=${stopId}`);
+                let data = await response.json();
+                console.log(data);
+                currentData = data;
+                await updatePage(data, expandedLines);
+            } catch (e) {
+                console.error('Error fetching data:', e);
+                document.getElementById('departure-table').innerHTML = `
+                    <div class="departure-card">
+                        <div class="departure-header">
+                            <span class="destination">Error loading departures</span>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        async function updatePage(data, expandedLines = []) {
+            updateClock();
+            
+            if (!data || data.length === 0) {
+                document.getElementById('departure-table').innerHTML = `
+                    <div class="departure-card">
+                        <div class="departure-header">
+                            <span class="destination">No departures available</span>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            let haltepunktName = data[0]?.haltestelle || 'Unknown Station';
+            document.getElementById('haltepunkt-name').innerText = haltepunktName;
+            
+            let container = document.getElementById('departure-table');
+            container.innerHTML = '';
+
+            data.forEach(line => {
+                if (line.abfahrten && line.abfahrten.length > 0) {
+                    const card = document.createElement('div');
+                    card.className = 'departure-card';
+                    
+                    // Main departure info
+                    const mainDepartures = line.abfahrten.slice(0, 2);
+                    const firstDeparture = mainDepartures[0];
+                    
+                    card.innerHTML = `
+                        <div class="departure-header" onclick="toggleLineDetails('${line.linie}')">
+                            <div class="line-number">${line.linie}</div>
+                            <div class="destination">${firstDeparture.ziel}</div>
+                            <div class="time-left">${firstDeparture.abfahrt_in_minuten}'</div>
+                        </div>
+                        <div class="indicators">
+                            ${firstDeparture.niederflur === "Ja" ? 
+                                '<span class="indicator">♿ Accessible</span>' : ''}
+                            <span class="indicator">🕒 Live</span>
+                        </div>
+                    `;
+
+                    // Additional departures
+                    if (line.abfahrten.length > 1) {
+                        const moreDepartures = document.createElement('div');
+                        moreDepartures.className = 'more-departures';
+                        moreDepartures.id = `more-${line.linie}`;
+                        
+                        line.abfahrten.slice(1).forEach(dep => {
+                            moreDepartures.innerHTML += `
+                                <div class="departure-row">
+                                    <div class="destination">${dep.ziel}</div>
+                                    <div class="time-left">${dep.abfahrt_in_minuten}'</div>
+                                </div>
+                            `;
+                        });
+                        
+                        card.appendChild(moreDepartures);
+                    }
+
+                    container.appendChild(card);
+                }
+            });
+
+            const lastUpdated = data[0]?.letzte_abfrage || '';
+            document.getElementById('last-updated').innerText = `Last updated: ${lastUpdated}`;
+            
+            // Re-expand previously expanded lines after a short delay
+            await new Promise(resolve => setTimeout(resolve, 100));
+            expandedLines.forEach(line => {
+                const moreContainer = document.querySelector(`#more-${line}`);
+                if (moreContainer) {
+                    moreContainer.classList.add('visible');
+                }
+            });
+        }
+
+        if (stopId) {
+            fetchData();
+            setInterval(fetchData, 15000);
+            setInterval(updateClock, 1000);
+        }
+    </script>
+</body>
+</html>
