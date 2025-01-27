@@ -1,25 +1,22 @@
-// Service Worker
-const CACHE_NAME = 'transit-v1';
+const CACHE_NAME = 'abfahrtsmonitor-v1';
 const ASSETS = [
-  '/',
-  '/search.html',
-  '/monitor.html',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
-  'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap'
+    '/Boids-Algo/',
+    '/Boids-Algo/index.html',
+    '/Boids-Algo/manifest.json',
+    '/Boids-Algo/icons/icon-128x128.png',
+    '/Boids-Algo/icons/icon-512x512.png'
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
-  );
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => cache.addAll(ASSETS))
+    );
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request)
-      .catch(() => caches.match(event.request))
-  );
+self.addEventListener('fetch', (event) => {
+    event.respondWith(
+        caches.match(event.request)
+            .then((response) => response || fetch(event.request))
+    );
 });

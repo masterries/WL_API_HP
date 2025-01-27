@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="de" manifest="./manifest.json">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abfahrtsmonitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@600&display=swap" rel="stylesheet">
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        /* Previous styles remain the same */
+        body {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-weight: 300;
+            margin: 0;
+            padding: 0;
+        }
+        .header-container {
+            text-align: center;
+            padding: 15px 0;
+        }
+        .large-text {
+            font-size: 30px;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .back-button {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            font-family: 'Roboto Condensed', sans-serif;
+            background-color: black;
+            color: yellow;
+            border: none;
+            border-right: 2px solid red;
+            border-bottom: 2px solid red;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #222;
+        }
+
+        @media (max-width: 768px) {
+            .back-button {
+                font-size: 16px;
+                padding: 8px 16px;
+                top: 5px;
+                left: 5px;
+            }
+        }
+
+        .standard-text {
+            font-size: 15px;
+            margin: 0;
+            padding: 0;
+        }
+        table {
+            width: 86%;
+            border-collapse: collapse;
+            background-color: black;
+            color: yellow;
+            border: 10px solid red;
+            margin: 20px auto;
+        }
+        th, td {
+            padding: 5px;
+        }
+        td:first-child {
+            width: 20%;
+            text-align: center;
+            font-size: 30px;
+            cursor: pointer;
+        }
+        td:first-child:hover {
+            background-color: #333;
+        }
+        td:nth-child(2) {
+            width: 45%;
+            text-align: left;
+            font-size: 20px;
+        }
+        td:nth-child(3) {
+            width: 15%;
+            text-align: right;
+            font-size: 30px;
+        }
+        tr:not(:last-child) {
+            border-bottom: 1px solid yellow;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            display: none;
+            padding: 10px;
+        }
+        .last-updated {
+            text-align: center;
+            color: gray;
+            font-size: 14px;
+            margin: 10px;
+        }
+        .hidden-row {
+            display: none;
+        }
+        .hidden-row.visible {
+            display: table-row;
+        }
+        .expanded-row td {
+            background-color: #222;
+        }
+        .no-stop-id {
+            text-align: center;
+            color: red;
+            padding: 20px;
+            font-size: 24px;
+        }
+        @media (max-width: 768px) {
+            .large-text, #haltepunkt-name {
+                display: none;
+            }
+            #stoerung-text {
+                display: block;
+                font-size: 20px;
+                color: red;
+                padding: 10px;
+            }
+            td:first-child {
+                font-size: 20px;
+            }
+            td:nth-child(2) {
+                font-size: 15px;
+            }
+            td:nth-child(3) {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button onclick="window.location.href='index.html'" class="back-button">← Zurück</button>
+    <div class="header-container">
+        <p class="large-text" id="current-time"></p>
+        <p class="large-text" id="haltepunkt-name">Haltepunkt Name</p>
+    </div>
+    <table id="departure-table">
+        <!-- Departure data will be inserted here -->
+    </table>
+    <p id="last-updated" class="last-updated"></p>
+    <p id="stoerung-text" class="standard-text"></p>
+    <p id="error-message" class="error"></p>
+
+    <script>
+        let currentData = null;
+        
+        // Function to get URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        // Get stopId from URL or use default 2949
+        const stopId = getUrlParameter('stopId') || '2949';
+
+        function updateClock() {
+            const jetzt = new Date();
+            const tag = jetzt.getDate();
+            const monat = jetzt.getMonth() + 1;
+            const monat2 = (monat < 10 ? "0" : "");
+            const stunden = jetzt.getHours();
+            const stunden2 = (stunden < 10 ? "0" : "");
+            const minuten = jetzt.getMinutes();
+            const minute2 = (minuten < 10 ? ":0" : ":");
+            const sekunden = jetzt.getSeconds();
+            const sekunde2 = (sekunden < 10 ? ".0" : ".");
+            document.getElementById('current-time').innerText = `${stunden2}${stunden}${minute2}${minuten}${sekunde2}${sekunden} | ${tag}.${monat2}${monat}.`;
+        }
+
+        function toggleLineDetails(linie) {
+            const hiddenRows = document.querySelectorAll(`tr[data-line="${linie}"].hidden-row`);
+            hiddenRows.forEach(row => {
+                row.classList.toggle('visible');
+            });
+
+            const mainRows = document.querySelectorAll(`tr[data-line="${linie}"]:not(.hidden-row)`);
+            mainRows.forEach(row => {
+                row.classList.toggle('expanded-row');
+            });
+        }
+
+        async function fetchData() {
+            try {
+                let response = await fetch(`https://wlproxy.vercel.app/api/monitor-station?stopId=${stopId}`);
+                let data = await response.json();
+                console.log(data);
+                currentData = data;
+                updatePage(data);
+            } catch (e) {
+                console.error('Error fetching data:', e);
+                document.getElementById('error-message').innerText = 'Fehler beim Abrufen der Daten.';
+                document.getElementById('error-message').style.display = 'block';
+            }
+        }
+
+        function updatePage(data) {
+            updateClock();
+            
+            if (!data || data.length === 0) {
+                document.getElementById('error-message').innerText = 'Keine Anzeigedaten verfügbar.';
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('departure-table').innerHTML = '';
+                document.getElementById('stoerung-text').innerHTML = '';
+                return;
+            }
+
+            document.getElementById('error-message').style.display = 'none';
+            let haltepunktName = data[0]?.haltestelle || 'Unbekannter Haltepunkt';
+            document.getElementById('haltepunkt-name').innerText = haltepunktName;
+            
+            let table = document.getElementById('departure-table');
+            table.innerHTML = '';
+
+            // Create station header
+            let stationHeader = document.createElement('tr');
+            stationHeader.innerHTML = `<th colspan="3">${haltepunktName}</th>`;
+            table.appendChild(stationHeader);
+
+            // Process each line's departures
+            data.forEach(line => {
+                if (line.abfahrten && line.abfahrten.length > 0) {
+                    // Add first two departures as always visible
+                    line.abfahrten.slice(0, 2).forEach((abfahrt, index) => {
+                        let row = document.createElement('tr');
+                        row.setAttribute('data-line', line.linie);
+                        row.innerHTML = `
+                            <td onclick="toggleLineDetails('${line.linie}')">${line.linie}</td>
+                            <td>${abfahrt.ziel} ${abfahrt.niederflur === "Ja" ? '♿' : ''} 🕒</td>
+                            <td>${abfahrt.abfahrt_in_minuten}'</td>
+                        `;
+                        table.appendChild(row);
+                    });
+
+                    // Add remaining departures as hidden rows
+                    line.abfahrten.slice(2).forEach(abfahrt => {
+                        let row = document.createElement('tr');
+                        row.setAttribute('data-line', line.linie);
+                        row.classList.add('hidden-row');
+                        row.innerHTML = `
+                            <td onclick="toggleLineDetails('${line.linie}')">${line.linie}</td>
+                            <td>${abfahrt.ziel} ${abfahrt.niederflur === "Ja" ? '♿' : ''} 🕒</td>
+                            <td>${abfahrt.abfahrt_in_minuten}'</td>
+                        `;
+                        table.appendChild(row);
+                    });
+                }
+            });
+
+            // Update last updated time
+            const lastUpdated = data[0]?.letzte_abfrage || '';
+            document.getElementById('last-updated').innerText = `Letzte Aktualisierung: ${lastUpdated}`;
+        }
+
+        // Only start the updates if we have a valid stopId
+        if (stopId) {
+            fetchData();
+            setInterval(fetchData, 15000);
+            setInterval(updateClock, 1000);
+        }
+    </script>
+    
+    <!-- Register Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
